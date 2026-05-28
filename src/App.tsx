@@ -1,121 +1,26 @@
 import React, { useState } from 'react';
 import { 
-  Plus, Check, Trash2, Edit3, Code2, Smartphone, Terminal, 
-  Github, Copy, CheckCircle2, FileCode, Folder, FolderOpen, 
-  HelpCircle, ChevronRight, Info, BookOpen, Layers, Settings,
-  Play, Download, Cpu, RefreshCw, X, AlertTriangle
+  FileCode, Terminal, Copy, Check, Folder, ChevronRight, CheckCircle2,
+  Code2, Sparkles, Layers, BookOpen, ExternalLink, RefreshCw
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 
-// Simulated Task interface for the web preview
-interface Task {
+// Organized groups of files for the Todo Android application
+interface AndroidFile {
   id: string;
-  title: string;
+  name: string;
+  path: string;
+  language: 'java' | 'xml';
   description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  isCompleted: boolean;
+  content: string;
 }
 
-// Full code representation for the visual directory explorer
-const PROJECT_FILES = [
+const JAVA_FILES: AndroidFile[] = [
   {
-    name: '.github/workflows',
-    type: 'folder',
-    children: [
-      { name: 'android.yml', id: 'workflow' }
-    ]
-  },
-  {
-    name: 'app/src/main',
-    type: 'folder',
-    children: [
-      { name: 'AndroidManifest.xml', id: 'manifest' },
-      { name: 'java/com/example/todoapp/MainActivity.java', id: 'main_activity' },
-      { name: 'java/com/example/todoapp/TodoItem.java', id: 'todo_item' },
-      { name: 'java/com/example/todoapp/TodoDatabaseHelper.java', id: 'db_helper' },
-      { name: 'java/com/example/todoapp/TodoAdapter.java', id: 'adapter' },
-      { name: 'res/layout/activity_main.xml', id: 'layout_main' },
-      { name: 'res/layout/item_todo.xml', id: 'layout_item' },
-      { name: 'res/values/colors.xml', id: 'colors' },
-      { name: 'res/values/strings.xml', id: 'strings' },
-      { name: 'res/values/themes.xml', id: 'themes' }
-    ]
-  },
-  { name: 'build.gradle', id: 'root_build_gradle', type: 'file' },
-  { name: 'settings.gradle', id: 'settings_gradle', type: 'file' },
-  { name: 'gradle.properties', id: 'gradle_properties', type: 'file' },
-  { name: 'app/build.gradle', id: 'app_build_gradle', type: 'file' }
-];
-
-const FILE_CONTENTS: Record<string, { path: string; language: string; content: string }> = {
-  workflow: {
-    path: '.github/workflows/android.yml',
-    language: 'yaml',
-    content: `name: Build Android APK
-
-on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: '8.5'
-
-    - name: Build Debug APK
-      run: gradle assembleDebug
-
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: TodoApp-Debug-APK
-        path: app/build/outputs/apk/debug/app-debug.apk`
-  },
-  manifest: {
-    path: 'app/src/main/AndroidManifest.xml',
-    language: 'xml',
-    content: `<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.TodoApp">
-        
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-
-</manifest>`
-  },
-  main_activity: {
+    id: 'main_activity',
+    name: 'MainActivity.java',
     path: 'app/src/main/java/com/example/todoapp/MainActivity.java',
     language: 'java',
+    description: 'Binds RecyclerView, handles floating action buttons, opens material dialogs, and interacts with SQLite Database Helper.',
     content: `package com.example.todoapp;
 
 import android.os.Bundle;
@@ -289,9 +194,12 @@ public class MainActivity extends AppCompatActivity {
     }
 }`
   },
-  todo_item: {
+  {
+    id: 'todo_item',
+    name: 'TodoItem.java',
     path: 'app/src/main/java/com/example/todoapp/TodoItem.java',
     language: 'java',
+    description: 'The standard data model class (POJO) representing a custom checklist entry with priority states.',
     content: `package com.example.todoapp;
 
 public class TodoItem {
@@ -333,9 +241,12 @@ public class TodoItem {
     public void setCompleted(boolean completed) { isCompleted = completed; }
 }`
   },
-  db_helper: {
+  {
+    id: 'db_helper',
+    name: 'TodoDatabaseHelper.java',
     path: 'app/src/main/java/com/example/todoapp/TodoDatabaseHelper.java',
     language: 'java',
+    description: 'Extends SQLiteOpenHelper to initialize local SQLite schemas, update fields, and delete to-do records.',
     content: `package com.example.todoapp;
 
 import android.content.ContentValues;
@@ -432,9 +343,12 @@ public class TodoDatabaseHelper extends SQLiteOpenHelper {
     }
 }`
   },
-  adapter: {
+  {
+    id: 'adapter',
+    name: 'TodoAdapter.java',
     path: 'app/src/main/java/com/example/todoapp/TodoAdapter.java',
     language: 'java',
+    description: 'Implements full-performance ViewHolder pattern to efficiently reuse custom to-do rows as lists change.',
     content: `package com.example.todoapp;
 
 import android.graphics.Color;
@@ -553,10 +467,43 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
         }
     }
 }`
+  }
+];
+
+const XML_FILES: AndroidFile[] = [
+  {
+    id: 'manifest',
+    name: 'AndroidManifest.xml',
+    path: 'app/src/main/AndroidManifest.xml',
+    language: 'xml',
+    description: 'Declares package name, entry point Activity (MainActivity), application themes, and intent triggers.',
+    content: `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TodoApp">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>`
   },
-  layout_main: {
+  {
+    id: 'layout_main',
+    name: 'activity_main.xml',
     path: 'app/src/main/res/layout/activity_main.xml',
     language: 'xml',
+    description: 'The primary UI layout using ConstraintLayout, containing a Material AppBar, Todo list RecyclerView, empty state holder space, and a FloatingActionButton.',
     content: `<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -663,9 +610,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
 
 </androidx.constraintlayout.widget.ConstraintLayout>`
   },
-  layout_item: {
+  {
+    id: 'layout_item',
+    name: 'item_todo.xml',
     path: 'app/src/main/res/layout/item_todo.xml',
     language: 'xml',
+    description: 'Highly structured list item styling featuring clean CardView margins, native CheckBox button bounds, and a trailing delete button.',
     content: `<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -740,9 +690,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
     </LinearLayout>
 </androidx.cardview.widget.CardView>`
   },
-  colors: {
+  {
+    id: 'colors',
+    name: 'colors.xml',
     path: 'app/src/main/res/values/colors.xml',
     language: 'xml',
+    description: 'Stores design system color values including Material Slate defaults and individual item priority hexadecimal states.',
     content: `<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary">#0F172A</color>
@@ -761,9 +714,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
     <color name="priority_low">#10B981</color>
 </resources>`
   },
-  strings: {
+  {
+    id: 'strings',
+    name: 'strings.xml',
     path: 'app/src/main/res/values/strings.xml',
     language: 'xml',
+    description: 'Provides fully localized UI string translation key references mapped from standard resources.',
     content: `<resources>
     <string name="app_name">Android To-Do</string>
     <string name="add_task">Add Task</string>
@@ -781,9 +737,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
     <string name="priority_low">Low</string>
 </resources>`
   },
-  themes: {
+  {
+    id: 'themes',
+    name: 'themes.xml',
     path: 'app/src/main/res/values/themes.xml',
     language: 'xml',
+    description: 'Instructs the device styles compiler to assign Material3 NoActionBar parent variables with deep custom colors.',
     content: `<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.TodoApp" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
@@ -793,780 +752,250 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>`
-  },
-  root_build_gradle: {
-    path: 'build.gradle',
-    language: 'groovy',
-    content: `// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    id 'com.android.application' version '8.2.2' apply false
-    id 'com.android.library' version '8.2.2' apply false
-}`
-  },
-  settings_gradle: {
-    path: 'settings.gradle',
-    language: 'groovy',
-    content: `pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-rootProject.name = "TodoApp"
-include ':app'`
-  },
-  gradle_properties: {
-    path: 'gradle.properties',
-    language: 'properties',
-    content: `org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-android.useAndroidX=true
-android.enableJetifier=true`
-  },
-  app_build_gradle: {
-    path: 'app/build.gradle',
-    language: 'groovy',
-    content: `plugins {
-    id 'com.android.application'
-}
-
-android {
-    namespace 'com.example.todoapp'
-    compileSdk 34
-
-    defaultConfig {
-        applicationId "com.example.todoapp"
-        minSdk 24
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-}
-
-dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.recyclerview:recyclerview:1.3.2'
-    implementation 'androidx.cardview:cardview:1.0.0'
-    
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-}`
   }
-};
+];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'preview' | 'code' | 'guide'>('preview');
-  
-  // Simulator State Machine
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Setup TodoDatabaseHelper',
-      description: 'Implement SQLite CRUD operations with Java',
-      priority: 'HIGH',
-      isCompleted: true
-    },
-    {
-      id: '2',
-      title: 'Design activity_main.xml',
-      description: 'Define AppbarCard, RecyclerView, and FloatingActionButton widgets',
-      priority: 'MEDIUM',
-      isCompleted: false
-    },
-    {
-      id: '3',
-      title: 'Configure android.yml compiler',
-      description: 'Validate automation build triggers on Gradle assembleDebug',
-      priority: 'HIGH',
-      isCompleted: false
-    },
-    {
-      id: '4',
-      title: 'Refactor TodoAdapter',
-      description: 'Wire ViewHolder and item selection animations',
-      priority: 'LOW',
-      isCompleted: false
-    }
-  ]);
+  const [selectedFile, setSelectedFile] = useState<AndroidFile>(JAVA_FILES[0]);
+  const [copied, setCopied] = useState(false);
 
-  // Dialog state for adding/editing tasks in simulator
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [dialogTitle, setDialogTitle] = useState('');
-  const [dialogDesc, setDialogDesc] = useState('');
-  const [dialogPriority, setDialogPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH'>('MEDIUM');
-
-  // File explorer states
-  const [selectedFileId, setSelectedFileId] = useState<string>('main_activity');
-  const [copiedId, setCopiedId] = useState<boolean>(false);
-
-  // Stats calculation
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.isCompleted).length;
-  const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-  // Simulator helper functions
-  const openAddDialog = () => {
-    setIsEditMode(false);
-    setEditingTaskId(null);
-    setDialogTitle('');
-    setDialogDesc('');
-    setDialogPriority('MEDIUM');
-    setDialogOpen(true);
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(selectedFile.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
   };
 
-  const openEditDialog = (task: Task) => {
-    setIsEditMode(true);
-    setEditingTaskId(task.id);
-    setDialogTitle(task.title);
-    setDialogDesc(task.description);
-    setDialogPriority(task.priority);
-    setDialogOpen(true);
-  };
+  // Safe manual syntax highlighter for premium feeling UI
+  const highlightCode = (text: string, lang: 'java' | 'xml') => {
+    if (lang === 'java') {
+      const keywords = /\b(package|import|public|class|private|extends|protected|void|override|new|return|if|else|for|boolean|int|long|final|static|instanceof|throws)\b/g;
+      const annotations = /(@\w+)/g;
+      const strings = /("(?:[^"\\]|\\.)*")/g;
+      const comments = /(\/\/.*|\/\*[\s\S]*?\*\/)/g;
 
-  const handleSaveTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!dialogTitle.trim()) return;
-
-    if (isEditMode && editingTaskId) {
-      setTasks(prev => prev.map(t => t.id === editingTaskId ? {
-        ...t,
-        title: dialogTitle,
-        description: dialogDesc,
-        priority: dialogPriority
-      } : t));
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(comments, '<span class="text-slate-500 font-normal italic">$1</span>')
+        .replace(strings, '<span class="text-emerald-400">$1</span>')
+        .replace(keywords, '<span class="text-orange-400 font-semibold">$1</span>')
+        .replace(annotations, '<span class="text-blue-400 font-medium">$1</span>');
     } else {
-      const newTask: Task = {
-        id: Date.now().toString(),
-        title: dialogTitle,
-        description: dialogDesc,
-        priority: dialogPriority,
-        isCompleted: false
-      };
-      setTasks(prev => [newTask, ...prev]);
+      // Simple XML highlighter (tags, attributes, string properties)
+      const tags = /(&lt;\/?[a-zA-Z0-9:._-]+)/g;
+      const attribs = /\b([a-zA-Z0-9:._-]+)(?=\s*=)/g;
+      const strings = /("(?:[^"\\]|\\.)*")/g;
+      const comments = /(&lt;!--[\s\S]*?--&gt;)/g;
+
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(comments, '<span class="text-slate-500">$1</span>')
+        .replace(tags, '<span class="text-blue-400 font-semibold">$1</span>')
+        .replace(attribs, '<span class="text-amber-400 font-normal">$1</span>')
+        .replace(strings, '<span class="text-emerald-300">$1</span>');
     }
-    setDialogOpen(false);
-  };
-
-  const handleDeleteTask = (id: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setTasks(prev => prev.filter(t => t.id !== id));
-  };
-
-  const toggleTaskComplete = (id: string) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, isCompleted: !t.isCompleted } : t));
-  };
-
-  // Helper code copying function
-  const handleCopyCode = (content: string) => {
-    navigator.clipboard.writeText(content);
-    setCopiedId(true);
-    setTimeout(() => setCopiedId(false), 2000);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col antialiased selection:bg-blue-600/30 selection:text-blue-200">
+    <div id="workbench_root" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600/30 selection:text-blue-200">
       
-      {/* Premium Header Decoration */}
-      <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Top Header / Developer Panel */}
+      <header id="workbench_header" className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-tr from-slate-900 via-blue-950 to-blue-800 border border-blue-900/40 shadow-lg shadow-blue-950/20">
-            <Cpu className="w-5 h-5 text-blue-400 animate-pulse" />
+          <div className="p-2.5 rounded-xl bg-gradient-to-tr from-slate-900 via-blue-950 to-blue-800 border border-blue-900/40 shadow-lg shadow-blue-900/20">
+            <Code2 className="w-6 h-6 text-blue-400 animate-pulse" />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent tracking-tight">
-              Android Developer Workbench
+              Android Native To-Do Codebase
             </h1>
             <p className="text-xs text-slate-400 font-mono">
-              Pure Java + XML • Built-in APK GitHub Compiler
+              Purified Java + XML • Native SQLite Engine
             </p>
           </div>
         </div>
 
-        {/* Global Controls */}
-        <div className="flex bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80 max-w-sm">
-          <button 
-            onClick={() => setActiveTab('preview')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
-              activeTab === 'preview' 
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
-                : 'text-slate-400 hover:text-slate-100'
-            }`}
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            Live Emulator
-          </button>
-          <button 
-            onClick={() => setActiveTab('code')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
-              activeTab === 'code' 
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
-                : 'text-slate-400 hover:text-slate-100'
-            }`}
-          >
-            <Code2 className="w-3.5 h-3.5" />
-            Browse Java/XML
-          </button>
-          <button 
-            onClick={() => setActiveTab('guide')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
-              activeTab === 'guide' 
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
-                : 'text-slate-400 hover:text-slate-100'
-            }`}
-          >
-            <Github className="w-3.5 h-3.5" />
-            GitHub APK Guide
-          </button>
+        {/* Clean compilation badge */}
+        <div id="gradle_compilation_status" className="flex items-center gap-3 self-start md:self-auto bg-blue-950/30 border border-blue-900/50 rounded-xl px-4 py-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="text-xs">
+            <span className="text-slate-300 font-medium">AAPT Compile Fix Applied:</span>{' '}
+            <span className="text-slate-400 font-mono text-[11px]">removed non-existent @mipmap icons from AndroidManifest.xml</span>
+          </div>
         </div>
       </header>
 
-      {/* Main Content Areas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      {/* Main Container */}
+      <main id="workbench_main" className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 leading-relaxed">
         
-        {/* TAB 1: PREVIEW (Android Emulator + Side Info Panel) */}
-        {activeTab === 'preview' && (
-          <>
-            {/* Phone Display Case */}
-            <div className="lg:col-span-5 flex justify-center items-center py-4 bg-slate-950/40 rounded-2xl border border-slate-900/50">
-              <div className="relative w-[345px] h-[680px] bg-slate-900 rounded-[50px] p-3.5 shadow-2xl shadow-blue-950/40 border-[3px] border-slate-800 flex flex-col overflow-hidden">
-                
-                {/* Physical Notch */}
-                <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-40 h-5 bg-black rounded-full z-50 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 bg-slate-800 rounded-full ml-auto mr-12 border border-slate-900/50"></div>
-                </div>
-
-                {/* Simulated Android Status Bar */}
-                <div className="h-6 flex items-center justify-between px-6 bg-slate-900 text-[11px] font-mono text-slate-300 select-none z-30 pt-1">
-                  <span>9:41 AM</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[9px]">4G LTE</span>
-                    <div className="w-5 h-2.5 border border-slate-400 rounded-sm p-[1px] flex items-center">
-                      <div className="w-full h-full bg-slate-200 rounded-[1px]" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Emulator Screen Frame */}
-                <div className="flex-1 bg-slate-100 rounded-[35px] overflow-hidden flex flex-col relative text-slate-900">
-                  
-                  {/* Android Card Header (Toolbar) */}
-                  <div className="bg-slate-900 text-white px-5 py-4 pt-5 flex items-center justify-between shadow-md">
-                    <div>
-                      <h2 className="text-lg font-bold tracking-tight">Android To-Do</h2>
-                      <p className="text-[10px] text-slate-400 font-mono tracking-wider">COM.EXAMPLE.TODOAPP</p>
-                    </div>
-                    <div className="bg-slate-800 px-3 py-1.5 rounded-full text-xs font-mono font-bold text-blue-300 shadow-inner">
-                      {completedTasks}/{totalTasks} Done
-                    </div>
-                  </div>
-
-                  {/* Task List Container (Simulating RecyclerView) */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50">
-                    
-                    {tasks.length === 0 ? (
-                      <div className="h-full flex flex-col justify-center items-center text-center opacity-70 py-16">
-                        <div className="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 mb-4 shadow-sm">
-                          <CheckCircle2 className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-base font-bold text-slate-800">No active tasks</h3>
-                        <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
-                          All tasks cleared. Tap + to create a custom task.
-                        </p>
-                      </div>
-                    ) : (
-                      <AnimatePresence initial={false}>
-                        {tasks.map(task => (
-                          <motion.div 
-                            key={task.id}
-                            layout
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            onClick={() => openEditDialog(task)}
-                            className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60 hover:shadow-md transition-shadow cursor-pointer flex items-start gap-4"
-                          >
-                            <input 
-                              type="checkbox"
-                              checked={task.isCompleted}
-                              onChange={() => toggleTaskComplete(task.id)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-5 h-5 mt-0.5 rounded-md text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer accent-blue-600"
-                            />
-                            
-                            <div className="flex-1 min-w-0">
-                              <h4 className={`text-sm font-bold leading-tight ${
-                                task.isCompleted ? 'line-through text-slate-400' : 'text-slate-800'
-                              } break-words`}>
-                                {task.title}
-                              </h4>
-                              {task.description && (
-                                <p className={`text-xs mt-1 ${
-                                  task.isCompleted ? 'text-slate-300' : 'text-slate-500'
-                                } line-clamp-2 break-words`}>
-                                  {task.description}
-                                </p>
-                              )}
-                              
-                              <div className="mt-2.5 flex items-center gap-2">
-                                <span className={`text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
-                                  task.priority === 'HIGH' 
-                                    ? 'bg-red-550 text-red-650' 
-                                    : task.priority === 'MEDIUM' 
-                                      ? 'bg-amber-100 text-amber-700' 
-                                      : 'bg-emerald-100 text-emerald-700'
-                                }`}>
-                                  {task.priority} Priority
-                                </span>
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={(e) => handleDeleteTask(task.id, e)}
-                              className="p-1 text-slate-300 hover:text-red-500 transition-colors rounded-lg hover:bg-slate-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    )}
-                  </div>
-
-                  {/* Android Floating Action Button */}
-                  <button 
-                    onClick={openAddDialog}
-                    className="absolute bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 z-40 cursor-pointer"
+        {/* Left Hand side: Pure Java & XML file list */}
+        <section id="sidebar_explorer" className="lg:col-span-4 flex flex-col gap-6">
+          
+          {/* Section: Java Source Code */}
+          <div className="bg-slate-900/40 rounded-2xl border border-slate-900 p-4 shadow-sm">
+            <div className="flex items-center gap-2 px-2 pb-3 border-b border-slate-800/60 mb-3">
+              <span className="text-amber-500 font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/10">JAVA</span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">Java Source Files</h2>
+            </div>
+            
+            <nav className="flex flex-col gap-1.5">
+              {JAVA_FILES.map((file) => {
+                const isActive = selectedFile.id === file.id;
+                return (
+                  <button
+                    key={file.id}
+                    id={`btn_file_${file.id}`}
+                    onClick={() => setSelectedFile(file)}
+                    className={`w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3 group ${
+                      isActive 
+                        ? 'bg-blue-600/10 border-blue-500/40 text-blue-200' 
+                        : 'bg-transparent border-transparent text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                    }`}
                   >
-                    <Plus className="w-7 h-7" />
-                  </button>
-
-                  {/* Visual Touch Area Bottom */}
-                  <div className="h-5 bg-slate-900 w-full flex items-center justify-center pt-1 pb-2 font-semibold">
-                    <div className="w-32 h-1 bg-slate-700 rounded-full" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Information & Architecture Sidepane */}
-            <div className="lg:col-span-7 flex flex-col justify-between gap-6">
-              
-              <div className="space-y-6">
-                
-                {/* Introduction Callout */}
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-850 space-y-3">
-                  <div className="flex items-center gap-2.5 text-blue-400">
-                    <Cpu className="w-5 h-5" />
-                    <h3 className="font-bold text-sm tracking-wide">COMPILER READY CONFIGURATION</h3>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed font-mono">
-                    This workbench does not just fake code block previews—it contains **actual physical, compile-ready Android project files initialized in the workspace**. Below is a visual map showing how the Java application leverages standard local SQLite architecture.
-                  </p>
-                </div>
-
-                {/* Architecture Highlights */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-900/60 flex gap-4">
-                    <div className="text-blue-500 p-2 bg-blue-950/40 rounded-lg h-fit">
-                      <Layers className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold font-mono text-slate-300">SQLite & SQLHelper</h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-normal">
-                        Utilizes original raw Android SQLite frameworks via <span className="text-blue-300 font-semibold font-mono">TodoDatabaseHelper.java</span>. Keeps dependency chains lightweight.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-900/60 flex gap-4">
-                    <div className="text-blue-500 p-2 bg-blue-950/40 rounded-lg h-fit">
-                      <Terminal className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold font-mono text-slate-300">RecyclerView Binding</h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-normal">
-                        Handles memory-efficient view-recycling via a standard custom ViewHolder in <span className="text-blue-300 font-semibold font-mono">TodoAdapter.java</span>.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-900/60 flex gap-4">
-                    <div className="text-blue-500 p-2 bg-blue-950/40 rounded-lg h-fit">
-                      <Smartphone className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold font-mono text-slate-300">XML View Composition</h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-normal">
-                        Designed with material elements featuring a high-contrast floating button, modern cards, and dynamic priority color tags.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-900/60 flex gap-4">
-                    <div className="text-emerald-500 p-2 bg-emerald-950/30 rounded-lg h-fit">
-                      <Github className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold font-mono text-slate-300">Automated GitHub Build</h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-normal">
-                        A clean, production-level CI config file builds a fresh debug APK instantly upon tracking code changes.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Simulated Android Terminal Output */}
-                <div className="rounded-xl border border-slate-900 bg-slate-950/80 p-4 font-mono text-[11px] leading-relaxed relative">
-                  <div className="flex items-center justify-between border-b border-slate-900 pb-2 mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                      <span className="text-slate-400 font-bold ml-1">Android Build Mock Terminal</span>
-                    </div>
-                    <span className="text-[10px] text-blue-500 font-bold uppercase animate-pulse">Running Simulator</span>
-                  </div>
-                  <div className="space-y-1 text-slate-300">
-                    <p className="text-slate-500">$ java -version</p>
-                    <p className="text-slate-400">openjdk version "17.0.10" 2024-01-16 LT</p>
-                    <p className="text-slate-500">$ gradle assembleDebug</p>
-                    <p className="text-blue-400">Task :app:compileDebugJavaWithJavac UP-TO-DATE</p>
-                    <p className="text-blue-400">Task :app:mergeDebugResources SUCCESSFUL</p>
-                    <p className="text-emerald-400 font-semibold">BUILD SUCCESSFUL in 1.482s</p>
-                    <p className="text-emerald-500 font-semibold">✓ APK Output Compiled: app/build/outputs/apk/debug/app-debug.apk</p>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Simple persistent prompt advising the user what to do */}
-              <div className="mt-8 bg-blue-950/10 border border-blue-900/20 p-4 rounded-xl flex items-start gap-3.5">
-                <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-slate-300 leading-normal">
-                  <p className="font-bold text-slate-100">Looking for the direct files?</p>
-                  <p className="mt-1">
-                    Toggle to the <strong className="text-blue-400">Browse Java/XML</strong> tab in the header. You can inspect the fully structured Gradle configurations, Java modules, and visual layouts we've written for you.
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </>
-        )}
-
-        {/* TAB 2: CODE (Physical Project Code Inspector Explorer) */}
-        {activeTab === 'code' && (
-          <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[580px] items-stretch">
-            
-            {/* Visual File Tree Navigation (Left Pane) */}
-            <div className="md:col-span-4 bg-slate-900/30 border border-slate-900 rounded-xl p-4 flex flex-col gap-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-2 flex items-center gap-2">
-                <Layers className="w-3.5 h-3.5" />
-                Workspace Files
-              </h3>
-              
-              <div className="flex-1 overflow-y-auto space-y-1 text-xs">
-                {PROJECT_FILES.map((file, idx) => {
-                  if (file.type === 'folder') {
-                    return (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex items-center gap-2 px-2.5 py-1.5 text-slate-300 font-semibold font-mono bg-slate-900/20 rounded-lg">
-                          <FolderOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                          <span>{file.name}</span>
-                        </div>
-                        <div className="pl-4 border-l border-slate-800 ml-4 space-y-1">
-                          {file.children?.map(child => (
-                            <button
-                              key={child.id}
-                              onClick={() => setSelectedFileId(child.id)}
-                              className={`w-full flex items-center justify-between text-left px-3 py-1.5 rounded-md font-mono transition-colors ${
-                                selectedFileId === child.id 
-                                  ? 'bg-blue-600/10 text-blue-400 border border-blue-900/40 font-bold' 
-                                  : 'text-slate-400 hover:bg-slate-900/40 hover:text-slate-200'
-                              }`}
-                            >
-                              <span className="truncate">{child.name}</span>
-                              <ChevronRight className="w-3 h-3 text-slate-500" />
-                            </button>
-                          ))}
-                        </div>
+                    <FileCode className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${
+                      isActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400'
+                    }`} />
+                    <div className="min-w-0">
+                      <div className="font-mono text-xs font-bold leading-tight">{file.name}</div>
+                      <div className={`text-[11px] mt-1 transition-colors leading-normal line-clamp-2 ${
+                        isActive ? 'text-blue-300/70' : 'text-slate-500 group-hover:text-slate-450'
+                      }`}>
+                        {file.description}
                       </div>
-                    );
-                  } else {
-                    return (
-                      <button
-                        key={file.id}
-                        onClick={() => setSelectedFileId(file.id || '')}
-                        className={`w-full flex items-center justify-between text-left px-3 py-2 rounded-lg font-mono transition-colors ${
-                          selectedFileId === file.id 
-                            ? 'bg-blue-600/10 text-blue-400 border border-blue-900/40 font-bold' 
-                            : 'text-slate-400 hover:bg-slate-900/40 hover:text-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <FileCode className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{file.name}</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                      </button>
-                    );
-                  }
-                })}
-              </div>
-            </div>
-
-            {/* Smart Syntax Code Viewer (Right Pane) */}
-            <div className="md:col-span-8 flex flex-col bg-slate-950 border border-slate-900 rounded-xl overflow-hidden">
-              
-              {/* Toolbar metadata of selected file */}
-              <div className="px-5 py-3 bg-slate-900/40 border-b border-slate-900 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span className="text-xs font-mono font-bold text-slate-300">
-                    /{FILE_CONTENTS[selectedFileId]?.path}
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleCopyCode(FILE_CONTENTS[selectedFileId]?.content || '')}
-                  className="flex items-center gap-1.5 px-3 py-1 ml-auto rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
-                >
-                  {copiedId ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      Copy File
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Formatted Editor Space */}
-              <div className="flex-1 p-5 overflow-auto font-mono text-[11px] sm:text-xs text-slate-300 bg-slate-950 leading-relaxed selection:bg-slate-800">
-                <pre className="whitespace-pre">{FILE_CONTENTS[selectedFileId]?.content}</pre>
-              </div>
-
-            </div>
-
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-        )}
 
-        {/* TAB 3: GUIDE (How to deploy and build) */}
-        {activeTab === 'guide' && (
-          <div className="lg:col-span-12 bg-slate-900/20 border border-slate-900 rounded-2xl p-6 sm:p-8 space-y-6">
+          {/* Section: XML Resource Files */}
+          <div className="bg-slate-900/40 rounded-2xl border border-slate-900 p-4 shadow-sm">
+            <div className="flex items-center gap-2 px-2 pb-3 border-b border-slate-800/60 mb-3">
+              <span className="text-blue-400 font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-blue-500/10">XML</span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">XML Resources & Manifests</h2>
+            </div>
             
-            <div className="flex items-center gap-4 border-b border-slate-900 pb-5">
-              <div className="p-3 bg-blue-950/50 rounded-xl border border-blue-900/30 text-blue-400 h-fit">
-                <Github className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white tracking-tight">GitHub Actions APK Compiler Guide</h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  How to push from this safe workbench workspace to GitHub and auto-build your APK artifact.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              {/* Step 1 Card */}
-              <div className="p-5 rounded-xl border border-slate-900/80 bg-slate-950/40 space-y-3">
-                <div className="w-7 h-7 bg-blue-900/40 text-blue-400 font-bold font-mono rounded-lg flex items-center justify-center text-xs">
-                  01
-                </div>
-                <h3 className="font-bold text-sm text-slate-100 font-mono">Download Codebase</h3>
-                <p className="text-xs text-slate-400 leading-normal">
-                  In AI Studio, look at the top settings icon/export button of the workbench application to download the complete file structure as a <strong className="text-slate-300">ZIP</strong> folder, or configure the direct sync to GitHub.
-                </p>
-              </div>
-
-              {/* Step 2 Card */}
-              <div className="p-5 rounded-xl border border-slate-900/80 bg-slate-950/40 space-y-3">
-                <div className="w-7 h-7 bg-blue-900/40 text-blue-400 font-bold font-mono rounded-lg flex items-center justify-center text-xs">
-                  02
-                </div>
-                <h3 className="font-bold text-sm text-slate-100 font-mono">Create GitHub Repo</h3>
-                <p className="text-xs text-slate-400 leading-normal">
-                  Create a new repository on your GitHub account. Initialize git locally in the extracted workspace folder, link the origin, and build a push command to your main remote branch.
-                </p>
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-900 font-mono text-[10px] text-slate-400 space-y-1">
-                  <p>git init</p>
-                  <p>git add .</p>
-                  <p>git commit -m "init"</p>
-                  <p>git push -u origin main</p>
-                </div>
-              </div>
-
-              {/* Step 3 Card */}
-              <div className="p-5 rounded-xl border border-slate-900/80 bg-slate-950/40 space-y-3">
-                <div className="w-7 h-7 bg-emerald-900/30 text-emerald-400 font-bold font-mono rounded-lg flex items-center justify-center text-xs">
-                  03
-                </div>
-                <h3 className="font-bold text-sm text-slate-100 font-mono">Download Compiled APK</h3>
-                <p className="text-xs text-slate-400 leading-normal">
-                  Go to the <strong className="text-emerald-400">Actions</strong> tab in your repository. The checkout automated workspace builds with Java 17 and Gradle. Once built, download the debug APK!
-                </p>
-              </div>
-
-            </div>
-
-            <div className="p-4 rounded-xl bg-blue-950/15 border border-blue-900/30 text-slate-300 flex items-start gap-4">
-              <Info className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
-              <div className="text-xs leading-relaxed">
-                <p className="font-bold text-white">How does it work behind the scenes?</p>
-                <p className="mt-1">
-                  The automated GitHub action searches for standard top-level <strong className="text-blue-300">build.gradle</strong> and <strong className="text-blue-300">settings.gradle</strong> files. It triggers the robust Android environment preinstalled on the official GitHub Runner virtual machine (Ubuntu-latest). This is lightweight, secure, and needs no heavy offline Android Studio setups.
-                </p>
-              </div>
-            </div>
-
+            <nav className="flex flex-col gap-1.5">
+              {XML_FILES.map((file) => {
+                const isActive = selectedFile.id === file.id;
+                return (
+                  <button
+                    key={file.id}
+                    id={`btn_file_${file.id}`}
+                    onClick={() => setSelectedFile(file)}
+                    className={`w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3 group ${
+                      isActive 
+                        ? 'bg-blue-600/10 border-blue-400/40 text-blue-200' 
+                        : 'bg-transparent border-transparent text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                    }`}
+                  >
+                    <FileCode className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${
+                      isActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400'
+                    }`} />
+                    <div className="min-w-0">
+                      <div className="font-mono text-xs font-bold leading-tight">{file.name}</div>
+                      <div className={`text-[11px] mt-1 transition-colors leading-normal line-clamp-2 ${
+                        isActive ? 'text-blue-300/70' : 'text-slate-500 group-hover:text-slate-450'
+                      }`}>
+                        {file.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-        )}
+          
+          {/* Quick guide on SQLite & Gradle integration */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-900 text-xs text-slate-400 space-y-3">
+            <div className="font-bold text-slate-300 flex items-center gap-1.5">
+              <Terminal className="w-3.5 h-3.5 text-blue-400" />
+              Android Architecture Overview
+            </div>
+            <p className="leading-relaxed">
+              This native application implements a direct SQLite controller loop without any third-party runtime databases. Data flow is cleanly mediated through <code className="font-mono text-blue-300">TodoDatabaseHelper</code> to the <code className="font-mono text-blue-300">MainActivity</code> recyclerview.
+            </p>
+            <div className="flex flex-wrap gap-1 text-[10px] font-mono">
+              <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">SQLite</span>
+              <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">Material3</span>
+              <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">RecyclerView</span>
+              <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">Gradle 8.5</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Right Hand side: Custom Code Viewer */}
+        <section id="code_viewer_panel" className="lg:col-span-8 flex flex-col bg-slate-900/30 rounded-2xl border border-slate-900 overflow-hidden shadow-2xl h-[560px] lg:h-auto">
+          
+          {/* Filename Bar */}
+          <div className="px-5 py-4 border-b border-slate-900 bg-slate-950/40 flex items-center justify-between gap-4">
+            <div className="min-w-0 flex items-center gap-2">
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                selectedFile.language === 'java' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+              }`}>
+                {selectedFile.language.toUpperCase()}
+              </span>
+              <div className="font-mono text-xs text-slate-300 truncate font-semibold" title={selectedFile.path}>
+                {selectedFile.path}
+              </div>
+            </div>
+
+            <button
+              id="btn_copy_to_clipboard"
+              onClick={handleCopyCode}
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-slate-800 text-xs font-semibold cursor-pointer transition-colors shrink-0"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Code</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Primary scrollable container */}
+          <div className="flex-1 overflow-auto bg-slate-950 p-4 font-mono text-xs flex items-stretch">
+            
+            {/* Styled Pre block */}
+            <pre className="w-full flex">
+              {/* Line Numbers column */}
+              <div className="text-right text-slate-600 select-none pr-4 border-r border-slate-900/60 sticky left-0 bg-slate-950 flex flex-col font-mono text-xs leading-5">
+                {selectedFile.content.split('\n').map((_, index) => (
+                  <span key={index} className="block block-line-number">{index + 1}</span>
+                ))}
+              </div>
+              
+              {/* Actual Code Display row */}
+              <div 
+                className="pl-4 flex-1 overflow-x-auto text-slate-300 font-mono text-xs leading-5 select-text whitespace-pre"
+                dangerouslySetInnerHTML={{ __html: highlightCode(selectedFile.content, selectedFile.language) }}
+              />
+            </pre>
+          </div>
+          
+          {/* Mini info overlay bar */}
+          <div className="px-5 py-3.5 border-t border-slate-900 bg-slate-950/30 text-slate-500 text-[11px] flex items-center justify-between">
+            <span className="font-mono">COM.EXAMPLE.TODOAPP • {selectedFile.content.split('\n').length} lines</span>
+            <span>Character Count: {selectedFile.content.length}</span>
+          </div>
+
+        </section>
 
       </main>
-
-      {/* Simulator Modal Dialog for adding/editing tasks */}
-      <AnimatePresence>
-        {dialogOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl text-slate-950 border border-slate-100 relative"
-            >
-              
-              <button 
-                onClick={() => setDialogOpen(false)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <h3 className="text-lg font-bold tracking-tight mb-4 flex items-center gap-2">
-                <Layers className="w-5 h-5 text-blue-600" />
-                {isEditMode ? 'Edit Task Widget' : 'Add New Task Widget'}
-              </h3>
-
-              <form onSubmit={handleSaveTask} className="space-y-4">
-                
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Task Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={dialogTitle}
-                    onChange={(e) => setDialogTitle(e.target.value)}
-                    placeholder="Enter widget title"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Description</label>
-                  <textarea
-                    value={dialogDesc}
-                    onChange={(e) => setDialogDesc(e.target.value)}
-                    placeholder="Widget description (optional)"
-                    rows={2}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Priority Label</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['LOW', 'MEDIUM', 'HIGH'] as const).map(p => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setDialogPriority(p)}
-                        className={`py-2 px-1 rounded-xl text-xs font-bold transition-all ${
-                          dialogPriority === p 
-                            ? p === 'HIGH' 
-                              ? 'bg-red-500 text-white shadow-sm' 
-                              : p === 'MEDIUM' 
-                                ? 'bg-amber-500 text-white shadow-sm' 
-                                : 'bg-emerald-500 text-white shadow-sm'
-                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-2 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDialogOpen(false)}
-                    className="flex-1 py-3 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-md shadow-blue-500/10"
-                  >
-                    {isEditMode ? 'Update Task' : 'Add Task'}
-                  </button>
-                </div>
-
-                {isEditMode && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (editingTaskId) {
-                        handleDeleteTask(editingTaskId);
-                        setDialogOpen(false);
-                      }
-                    }}
-                    className="w-full mt-2 py-2.5 text-xs font-bold text-red-650 bg-red-100 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete Task Widget
-                  </button>
-                )}
-
-              </form>
-
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Persistent Footer */}
-      <footer className="py-4 border-t border-slate-900 bg-slate-950/40 text-center text-[10px] text-slate-500 tracking-wider uppercase font-mono">
-        Android SDK v34 Framework API Simulation • JDK 17 • Gradle Native Action Trigger
+      
+      {/* Visual Footer */}
+      <footer className="border-t border-slate-900 bg-slate-950/60 py-4 px-6 text-center text-[11px] text-slate-500 font-mono">
+        Native Android To-Do Codebase Explorer • Designed purely for Java-focused application development
       </footer>
 
     </div>
