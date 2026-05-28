@@ -1,0 +1,6 @@
+{
+  "name": "Java Android To-Do Builder",
+  "description": "An interactive Android simulator and developer playground for a native Java/XML To-Do App, including all project files and automated GitHub Actions workflow to build the APK.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
